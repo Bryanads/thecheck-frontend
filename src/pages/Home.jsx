@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../api/api';
 import { useAuth } from '../auth/AuthProvider';
-import SpotRecommendationsGroup from '../components/SpotRecommendationsGroup';
+import RecommendationsGroup from '../components/RecommendationsGroup';
 
 const groupRecommendations = (recs) => {
     const grouped = {};
@@ -214,7 +214,7 @@ function Home() {
                                 .map(spotKey => {
                                     const spotData = groupedRecommendations[dayOffset][spotKey];
                                     return (
-                                        <SpotRecommendationsGroup
+                                        <RecommendationsGroup
                                             key={spotKey}
                                             spotName={spotData.spot_name}
                                             recommendations={spotData.recommendations}

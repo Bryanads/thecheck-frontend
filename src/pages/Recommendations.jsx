@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
 import { useAuth } from "../auth/AuthProvider";
-import SpotRecommendationsGroup from '../components/SpotRecommendationsGroup';
+import RecommendationsGroup from '../components/RecommendationsGroup';
 
 export default function Recommendations() {
   const { user } = useAuth();
@@ -362,7 +362,7 @@ export default function Recommendations() {
                 const spotData = recommendations[dayOffset][spotKey];
 
                 return (
-                  <SpotRecommendationsGroup
+                  <RecommendationsGroup
                     key={spotKey}
                     spotName={spotData.spot_name}
                     recommendations={spotData.recommendations}

@@ -13,7 +13,7 @@ function formatTime(isoDate) {
     }
 }
 
-export default function SpotRecommendationsGroup({ spotName, recommendations, error }) {
+export default function RecommendationsGroup({ spotName, recommendations, error }) {
     const [expanded, setExpanded] = useState(false);
 
     const toggleExpanded = () => setExpanded((prev) => !prev);
