@@ -29,46 +29,54 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
         {/* Gráfico de Altura da Onda Total */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Altura da Onda Total</p>
-          <ChartComponent
-            data={sortedForecasts}
-            metrics={[
-              { key: "wave_height_sg", name: "Altura da Onda Total", color: "#4169E1", unit: "m" }
-            ]}
-          />
+          <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
+            <ChartComponent
+              data={sortedForecasts}
+              metrics={[
+                { key: "wave_height_sg", name: "Altura da Onda Total", color: "#4169E1", unit: "m" }
+              ]}
+            />
+          </div>
         </div>
 
         {/* Gráfico de Velocidade do Vento */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Velocidade do Vento</p>
-          <ChartComponent
-            data={sortedForecasts}
-            metrics={[
-              { key: "wind_speed_sg", name: "Velocidade do Vento", color: "#228B22", unit: "m/s" }
-            ]}
-          />
+          <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
+            <ChartComponent
+              data={sortedForecasts}
+              metrics={[
+                { key: "wind_speed_sg", name: "Velocidade do Vento", color: "#228B22", unit: "m/s" }
+              ]}
+            />
+          </div>
         </div>
 
         {/* Gráfico de Temperatura do Ar e Água */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Temperatura do Ar e Água</p>
-          <ChartComponent
-            data={sortedForecasts}
-            metrics={[
-              { key: "air_temperature_sg", name: "Temperatura do Ar", color: "#FF4500", unit: "°C" }, // Vermelho para o Ar
-              { key: "water_temperature_sg", name: "Temperatura da Água", color: "#00BFFF", unit: "°C" } // Azul Claro para a Água
-            ]}
-          />
+          <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
+            <ChartComponent
+              data={sortedForecasts}
+              metrics={[
+                { key: "air_temperature_sg", name: "Temperatura do Ar", color: "#FF4500", unit: "°C" },
+                { key: "water_temperature_sg", name: "Temperatura da Água", color: "#00BFFF", unit: "°C" }
+              ]}
+            />
+          </div>
         </div>
 
         {/* Gráfico de Nível do Mar (Maré) */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Nível do Mar (Maré)</p>
-          <ChartComponent
-            data={sortedForecasts}
-            metrics={[
-              { key: "sea_level_sg", name: "Nível do Mar", color: "#8A2BE2", unit: "m" }
-            ]}
-          />
+          <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
+            <ChartComponent
+              data={sortedForecasts}
+              metrics={[
+                { key: "sea_level_sg", name: "Nível do Mar", color: "#8A2BE2", unit: "m" }
+              ]}
+            />
+          </div>
         </div>
       </div>
     </div>

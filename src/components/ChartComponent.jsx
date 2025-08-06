@@ -14,7 +14,6 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
   const markLines = [];
   let lastDate = '';
   let startIdx = 0;
-  let colorToggle = 0;
   let insertionsCount = 0;
 
   for (let i = 0; i < dateOnlyList.length; i++) {
@@ -30,8 +29,8 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
             label: {
               show: true,
               formatter: lastDate,
-              position: 'top', // Alterado para 'top' para posicionar acima
-              offset: [0, -20], // Ajuste o offset para mover para cima (primeiro valor é x, segundo é y)
+              position: 'top',
+              offset: [0, -20],
               color: '#000',
               fontWeight: 'bold',
               fontSize: 11
@@ -55,8 +54,6 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
             width: 2
           }
         });
-
-        colorToggle++;
       }
       startIdx = i;
       lastDate = currentDate;
@@ -73,8 +70,8 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
         label: {
           show: true,
           formatter: lastDate,
-          position: 'top', // Alterado para 'top'
-          offset: [0, -20], // Ajuste o offset
+          position: 'top',
+          offset: [0, -20],
           color: '#000',
           fontWeight: 'bold',
           fontSize: 11
@@ -108,7 +105,6 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
         width: 2
       }
     },
-    // Add label for wind direction if the current metric is wind speed
     label: metric.key === 'wind_speed_sg' ? {
       show: true,
       position: 'top',
@@ -125,6 +121,12 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
       fontWeight: 'bold'
     } : undefined
   }));
+
+
+
+  // Define the fixed width for each data point to achieve the "zoom"
+  const fixedDataPointWidth = 20; 
+  const chartWidth = processedLabels.length * fixedDataPointWidth;
 
   const option = {
     tooltip: {
@@ -173,7 +175,7 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
     grid: {
       left: 50,
       right: 30,
-      top: 60, // Aumente o top para dar espaço ao label da data
+      top: 60,
       bottom: 70,
     },
     xAxis: {
@@ -199,10 +201,11 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
       bottom: 0,
       icon: 'circle',
       textStyle: { fontSize: 12 }
-    } : undefined
+    } : undefined,
+    // dataZoom is completely removed
   };
 
-  return <ReactECharts option={option} style={{ height: 260, width: '100%' }} />;
+  return <ReactECharts option={option} style={{ height: 260, width: chartWidth }} />;
 };
 
 // Helpers
