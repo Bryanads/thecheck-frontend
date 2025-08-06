@@ -8,9 +8,9 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
-    surf_level: "beginner",
-    goofy_regular_stance: "regular",
-    preferred_wave_direction: "north",
+    surf_level: "",
+    goofy_regular_stance: "",
+    preferred_wave_direction: "",
     bio: "",
     profile_picture_url: ""
   });
@@ -54,7 +54,7 @@ export default function Register() {
         <select className="w-full border p-2" name="surf_level" value={form.surf_level} onChange={handleChange}>
           <option value="beginner">Iniciante</option>
           <option value="maroleiro">Maroleiro</option>
-          <option value="intermediate">Intermediário</option>
+          <option value="intermediario">Intermediário</option>
           <option value="expert">Expert</option>
         </select>
 
