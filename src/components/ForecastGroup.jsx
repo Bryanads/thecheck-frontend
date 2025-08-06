@@ -28,7 +28,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Gráfico de Altura da Onda Total */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-700 mb-3 text-lg">Evolução da Altura da Onda Total</p>
+          <p className="font-semibold text-gray-700 mb-3 text-lg">Altura da Onda Total</p>
           <ChartComponent
             data={sortedForecasts}
             metrics={[
@@ -39,7 +39,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
 
         {/* Gráfico de Velocidade do Vento */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-700 mb-3 text-lg">Evolução da Velocidade do Vento</p>
+          <p className="font-semibold text-gray-700 mb-3 text-lg">Velocidade do Vento</p>
           <ChartComponent
             data={sortedForecasts}
             metrics={[
@@ -50,7 +50,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
 
         {/* Gráfico de Temperatura do Ar e Água */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-700 mb-3 text-lg">Evolução da Temperatura do Ar e Água</p>
+          <p className="font-semibold text-gray-700 mb-3 text-lg">Temperatura do Ar e Água</p>
           <ChartComponent
             data={sortedForecasts}
             metrics={[
@@ -62,7 +62,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
 
         {/* Gráfico de Nível do Mar (Maré) */}
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-700 mb-3 text-lg">Evolução do Nível do Mar (Maré)</p>
+          <p className="font-semibold text-gray-700 mb-3 text-lg">Nível do Mar (Maré)</p>
           <ChartComponent
             data={sortedForecasts}
             metrics={[
