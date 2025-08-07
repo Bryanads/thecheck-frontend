@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
+import { RxFontBold } from 'react-icons/rx';
 
 const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
   if (!data || data.length === 0) {
@@ -17,12 +18,12 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
   let insertionsCount = 0;
 
   for (let i = 0; i < dateOnlyList.length; i++) {
-    const currentDate = dateOnlyList[i];
+    const currentDate = dateOnlyList === undefined ? null : dateOnlyList === null ? null : dateOnlyList?.[i];
     if (currentDate !== lastDate) {
       if (i > 0) {
         markAreas.push([
           {
-            xAxis: processedLabels[startIdx + insertionsCount],
+            xAxis: processedLabels === undefined ? null : processedLabels === null ? null : processedLabels?.[startIdx + insertionsCount],
             itemStyle: {
               color: 'transparent'
             },
@@ -37,13 +38,13 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
             }
           },
           {
-            xAxis: processedLabels[i - 1 + insertionsCount]
+            xAxis: processedLabels === undefined ? null : processedLabels === null ? null : processedLabels?.[i - 1 + insertionsCount]
           }
         ]);
 
         const insertIndex = i + insertionsCount;
-        processedLabels.splice(insertIndex, 0, `___EMPTY_SLOT_${insertionsCount}___`);
-        processedData.splice(insertIndex, 0, {});
+        if (processedLabels) processedLabels.splice(insertIndex, 0, `___EMPTY_SLOT_${insertionsCount}___`);
+        if (processedData) processedData.splice(insertIndex, 0, {});
         insertionsCount++;
 
         markLines.push({
@@ -60,10 +61,10 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
     }
   }
 
-  if (startIdx < data.length) {
+  if (startIdx < (data === undefined ? 0 : data === null ? 0 : data.length)) {
     markAreas.push([
       {
-        xAxis: processedLabels[startIdx + insertionsCount],
+        xAxis: processedLabels === undefined ? null : processedLabels === null ? null : processedLabels?.[startIdx + insertionsCount],
         itemStyle: {
           color: 'transparent'
         },
@@ -78,91 +79,151 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
         }
       },
       {
-        xAxis: processedLabels[processedLabels.length - 1]
+        xAxis: processedLabels === undefined ? null : processedLabels === null ? null : processedLabels?.[(processedLabels === undefined ? 0 : processedLabels === null ? 0 : processedLabels.length) - 1]
       }
     ]);
   }
 
-  const series = metrics.map((metric) => ({
-    name: metric.name,
-    type: 'bar',
-    data: processedData.map(d =>
-      d && typeof d[metric.key] !== 'undefined' ? parseFloat(d[metric.key]) : null
-    ),
-    itemStyle: { color: metric.color },
-    barWidth: '50%',
-    barGap: '-100%',
-    markArea: {
-      data: markAreas
-    },
-    markLine: {
-      data: markLines,
-      symbol: 'none',
-      label: { show: false },
-      lineStyle: {
-        color: '#000',
-        type: 'solid',
-        width: 2
-      }
-    },
-    label: metric.key === 'wind_speed_sg' ? {
-      show: true,
-      position: 'top',
-      formatter: (params) => {
-        const index = params.dataIndex;
-        const d = processedData[index];
-        if (d && d.wind_direction_sg !== undefined && d.wind_direction_sg !== null) {
-          return getDirection(d.wind_direction_sg);
-        }
-        return '';
+  let series = [];
+  if (metrics.length === 2 && metrics.some(m => m.key === 'air_temperature_sg') && metrics.some(m => m.key === 'water_temperature_sg')) {
+    const airTempMetric = metrics.find(m => m.key === 'air_temperature_sg');
+    const waterTempMetric = metrics.find(m => m.key === 'water_temperature_sg');
+
+    series = [
+      {
+        name: airTempMetric?.name,
+        type: 'bar',
+        data: processedData.map(d =>
+          d && typeof d?.[airTempMetric?.key] !== 'undefined' ? parseFloat(d?.[airTempMetric?.key]) : null
+        ),
+        itemStyle: { color: airTempMetric?.color },
+        barWidth: '50%',
+        barGap: '-100%',
+        markArea: {
+          data: markAreas
+        },
+        markLine: {
+          data: markLines,
+          symbol: 'none',
+          label: { show: false },
+          lineStyle: {
+            color: '#000',
+            type: 'solid',
+            width: 2
+          }
+        },
       },
-      color: '#000',
-      fontSize: 10,
-      fontWeight: 'bold'
-    } : undefined
-  }));
+      {
+        name: waterTempMetric?.name,
+        type: 'line',
+        data: processedData.map(d =>
+          d && typeof d?.[waterTempMetric?.key] !== 'undefined' ? parseFloat(d?.[waterTempMetric?.key]) : null
+        ),
+        symbol: 'circle',
+        symbolSize: 8,
+        itemStyle: { color: waterTempMetric?.color },
+      },
+    ];
+  } else {
+    series = metrics.map((metric) => ({
+      name: metric.name,
+      type: 'bar',
+      data: processedData.map(d =>
+        d && typeof d?.[metric.key] !== 'undefined' ? parseFloat(d?.[metric.key]) : null
+      ),
+      itemStyle: { color: metric.color },
+      barWidth: '50%',
+      barGap: '-100%',
+      markArea: {
+        data: markAreas
+      },
+      markLine: {
+        data: markLines,
+        symbol: 'none',
+        label: { show: false },
+        lineStyle: {
+          color: '#000',
+          type: 'solid',
+          width: 2
+        }
+      },
+      label: metric.key === 'wind_speed_sg' ? {
+        show: true,
+        position: 'top',
+        formatter: (params) => {
+          const index = params.dataIndex;
+          const d = processedData?.[index];
+          if (d && d.wind_direction_sg !== undefined && d.wind_direction_sg !== null) {
+            return getDirection(d.wind_direction_sg);
+          }
+          return '';
+        },
+        color: '#000',
+        fontSize: 10,
+        fontWeight: 'bold'
+      } : undefined
+    }));
+  }
 
+  const fixedDataPointWidth = 20;
+  const chartWidth = (processedLabels === undefined ? 0 : processedLabels === null ? 0 : processedLabels.length) * fixedDataPointWidth;
 
-
-  // Define the fixed width for each data point to achieve the "zoom"
-  const fixedDataPointWidth = 20; 
-  const chartWidth = processedLabels.length * fixedDataPointWidth;
+  // Logic to determine the Y-axis unit
+  let yAxisName = '';
+  if (metrics.length > 0) {
+      // Get all unique units from the metrics passed to the component
+      const uniqueUnits = [...new Set(metrics.map(m => m.unit))];
+      // If there's only one unique unit, use it
+      if (uniqueUnits.length === 1) {
+          yAxisName = uniqueUnits[0];
+      } else {
+          // If there are multiple units, list them separated by '/'
+          // This is useful if different metrics have different units
+          yAxisName = uniqueUnits.join(' / ');
+      }
+  }
 
   const option = {
     tooltip: {
       trigger: 'axis',
       formatter: (params) => {
-        const index = params?.[0]?.dataIndex;
-        const d = processedData[index];
-        if (!d || Object.keys(d).length === 0 || processedLabels[index]?.startsWith('___EMPTY_SLOT_')) {
-          return 'Sem dados';
-        }
-
-        let content = `<strong>${d.local_date_time}</strong><br/>`;
+        let content = `<strong>${params?.[0]?.axisValueLabel}</strong><br/>`;
         params.forEach(p => {
-          if (p.data !== null && p.data !== undefined) {
-            content += `${p.marker}${p.seriesName}: <b>${formatNumber(p.data, p.seriesName.includes('Nível') ? 2 : 1)}${getMetricUnit(p.seriesName, metrics)}</b><br/>`;
+          if (p.value !== null && p.value !== undefined) {
+            content += `${p.marker}${p.seriesName}: <b>${formatNumber(p.value, p.seriesName.includes('Nível') ? 2 : 1)}${getMetricUnit(p.seriesName, metrics)}</b><br/>`;
           }
         });
-
+        // Add specific info for wave height
         const mainKey = metrics[0]?.key;
-        if (mainKey === 'wave_height_sg') {
-          content += `
-            <hr/>
-            Período Onda: ${formatNumber(d.wave_period_sg)} s<br/>
-            Direção: ${getDirection(d.wave_direction_sg)}<br/>
-            <br/>
-            Swell Principal: ${formatNumber(d.swell_height_sg)} m / ${formatNumber(d.swell_period_sg)} s (${getDirection(d.swell_direction_sg)})<br/>
-          `;
-          if (d.secondary_swell_height_sg > 0) {
-            content += `Swell Secundário: ${formatNumber(d.secondary_swell_height_sg)} m / ${formatNumber(d.secondary_swell_period_sg)} s (${getDirection(d.secondary_swell_direction_sg)})<br/>`;
-          }
-        } else if (mainKey === 'wind_speed_sg') {
-          content += `<hr/>Direção do Vento: ${getDirection(d.wind_direction_sg)}<br/>`;
-        } else if (mainKey === 'air_temperature_sg') {
-          content += `<hr/>Umidade: ${formatNumber(d.humidity_sg, 0)}%<br/>`;
-        } else if (mainKey === 'sea_level_sg') {
-          content += `<hr/>Fase da Maré: <strong>${d.tide_phase === 'rising' ? 'Subindo' : 'Descendo'}</strong><br/>`;
+        if (mainKey === 'wave_height_sg' && params?.[0]?.dataIndex !== undefined) {
+            const d = processedData?.[params[0].dataIndex];
+            if (d && Object.keys(d).length !== 0 && !processedLabels?.[params[0].dataIndex]?.startsWith('___EMPTY_SLOT_')) {
+                content += `
+                    <hr/>
+                    Período Onda: ${formatNumber(d.wave_period_sg)} s<br/>
+                    Direção: ${getDirection(d.wave_direction_sg)}<br/>
+                    <br/>
+                    Swell Principal: ${formatNumber(d.swell_height_sg)} m / ${formatNumber(d.swell_period_sg)} s (${getDirection(d.swell_direction_sg)})<br/>
+                `;
+                if (d.secondary_swell_height_sg > 0) {
+                    content += `Swell Secundário: ${formatNumber(d.secondary_swell_height_sg)} m / ${formatNumber(d.secondary_swell_period_sg)} s (${getDirection(d.secondary_swell_direction_sg)})<br/>`;
+                }
+            }
+        } else if (mainKey === 'wind_speed_sg' && params?.[0]?.dataIndex !== undefined) {
+            const d = processedData?.[params[0].dataIndex];
+            if (d && Object.keys(d).length !== 0 && !processedLabels?.[params[0].dataIndex]?.startsWith('___EMPTY_SLOT_')) {
+                content += `<hr/>Direção do Vento: ${getDirection(d.wind_direction_sg)}<br/>`;
+            }
+        } else if (mainKey === 'air_temperature_sg' && params?.[0]?.dataIndex !== undefined) {
+             const d = processedData?.[params[0].dataIndex];
+            if (d && Object.keys(d).length !== 0 && !processedLabels?.[params[0].dataIndex]?.startsWith('___EMPTY_SLOT_')) {
+                content += `<hr/>Umidade: ${formatNumber(d.humidity_sg, 0)}%<br/>`;
+            }
+        } else if (mainKey === 'sea_level_sg' && params?.[0]?.dataIndex !== undefined) {
+             const d = processedData?.[params[0].dataIndex];
+            if (d && Object.keys(d).length !== 0 && !processedLabels?.[params[0].dataIndex]?.startsWith('___EMPTY_SLOT_')) {
+                content += `<hr/>Fase da Maré: <strong>${d.tide_phase === 'rising' ? 'Subindo' : 'Descendo'}</strong><br/>`;
+            }
         }
 
         return content;
@@ -184,25 +245,19 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
       axisLabel: {
         rotate: 45,
         fontSize: 11,
-        formatter: (val) => val.startsWith('___EMPTY_SLOT_') ? '' : val.split(', ')[1],
+        formatter: (val) => val?.startsWith('___EMPTY_SLOT_') ? '' : val?.split(', ')[1],
       },
       splitLine: { show: false },
     },
     yAxis: {
       type: 'value',
-      name: metrics.length === 1 ? metrics[0].unit : '',
+      name: yAxisName, 
       axisLabel: {
         fontSize: 12,
-        formatter: (value) => formatNumber(value, 2),
+        formatter: (value) => formatNumber(value, 1),
       },
     },
     series,
-    legend: showLegend ? {
-      bottom: 0,
-      icon: 'circle',
-      textStyle: { fontSize: 12 }
-    } : undefined,
-    // dataZoom is completely removed
   };
 
   return <ReactECharts option={option} style={{ height: 260, width: chartWidth }} />;
@@ -218,12 +273,12 @@ function getDirection(deg) {
   if (deg === undefined || deg === null) return 'N/A';
   const directions = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
   const index = Math.round(deg / 45) % 8;
-  return directions[index];
+  return directions?.[index];
 }
 
 function getMetricUnit(name, metrics) {
-  const found = metrics.find(m => m.name === name);
-  return found ? found.unit : '';
+  const found = metrics?.find(m => m.name === name);
+  return found?.unit || '';
 }
 
 export default ChartComponent;
