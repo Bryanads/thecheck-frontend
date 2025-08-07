@@ -1,6 +1,6 @@
 // src/components/ForecastGroup.jsx
 import React from 'react';
-import ChartComponent from './ChartComponent';
+import ForecastChart from './ForecastChart';
 
 const ForecastGroup = ({ spotName, forecasts, error }) => {
   if (error) {
@@ -30,7 +30,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Altura da Onda Total</p>
           <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
-            <ChartComponent
+            <ForecastChart
               data={sortedForecasts}
               metrics={[
                 { key: "wave_height_sg", name: "Altura da Onda Total", color: "#4169E1", unit: "m" }
@@ -43,7 +43,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Velocidade do Vento</p>
           <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
-            <ChartComponent
+            <ForecastChart
               data={sortedForecasts}
               metrics={[
                 { key: "wind_speed_sg", name: "Velocidade do Vento", color: "#228B22", unit: "m/s" }
@@ -56,7 +56,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Temperatura do Ar e Água</p>
           <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
-            <ChartComponent
+            <ForecastChart
               data={sortedForecasts}
               metrics={[
                 { key: "air_temperature_sg", name: "Temperatura do Ar", color: "#FF4500", unit: "°C" },
@@ -70,7 +70,7 @@ const ForecastGroup = ({ spotName, forecasts, error }) => {
         <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-700 mb-3 text-lg">Nível do Mar (Maré)</p>
           <div style={{ overflowX: 'auto', width: '100%' }}> {/* Added wrapper for horizontal scroll */}
-            <ChartComponent
+            <ForecastChart
               data={sortedForecasts}
               metrics={[
                 { key: "sea_level_sg", name: "Nível do Mar", color: "#8A2BE2", unit: "m" }

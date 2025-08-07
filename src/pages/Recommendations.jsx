@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
 import { useAuth } from "../auth/AuthProvider";
-import RecommendationsGroup from '../components/RecommendationsGroup';
+import RecommendationsGroup from "../components/Recommendations/RecommendationsGroup";
 
 export default function Recommendations() {
   const { user } = useAuth();

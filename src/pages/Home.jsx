@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../api/api';
 import { useAuth } from '../auth/AuthProvider';
-import RecommendationsGroup from '../components/RecommendationsGroup';
+import RecommendationsGroup from '../components/Recommendations/RecommendationsGroup';
 
 const groupRecommendations = (recs) => {
     const grouped = {};

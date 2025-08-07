@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
-import ForecastGroup from "../components/ForecastGroup";
+import ForecastGroup from "../components/Forecasts/ForecastGroup";
 
 export default function Forecasts() {
   const [spots, setSpots] = useState([]);

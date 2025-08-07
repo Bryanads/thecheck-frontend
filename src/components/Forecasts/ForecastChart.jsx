@@ -1,8 +1,27 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react'; // Importar useRef e useState
 import ReactECharts from 'echarts-for-react';
 import { RxFontBold } from 'react-icons/rx';
 
-const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
+const ForecastChart = ({ data, metrics = [], showLegend = true }) => {
+  const chartContainerRef = useRef(null); // Criar uma ref para o contêiner
+  const [containerWidth, setContainerWidth] = useState(0); // Estado para a largura do contêiner
+
+  useEffect(() => {
+    // Atualiza a largura do contêiner quando o componente monta ou redimensiona
+    const updateContainerWidth = () => {
+      if (chartContainerRef.current) {
+        setContainerWidth(chartContainerRef.current.offsetWidth);
+      }
+    };
+
+    updateContainerWidth(); // Chama uma vez ao montar
+    window.addEventListener('resize', updateContainerWidth); // Adiciona listener para redimensionamento
+
+    return () => {
+      window.removeEventListener('resize', updateContainerWidth); // Remove o listener ao desmontar
+    };
+  }, []);
+
   if (!data || data.length === 0) {
     return <p className="text-center text-gray-500 py-4">Dados insuficientes para o gráfico.</p>;
   }
@@ -165,8 +184,11 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
     }));
   }
 
-  const fixedDataPointWidth = 20;
-  const chartWidth = (processedLabels === undefined ? 0 : processedLabels === null ? 0 : processedLabels.length) * fixedDataPointWidth;
+  const fixedDataPointWidth = 20; // Aumentar um pouco para um zoom maior para pontos individuais
+  const minChartWidth = (processedLabels === undefined ? 0 : processedLabels === null ? 0 : processedLabels.length) * fixedDataPointWidth;
+  // A largura final do gráfico será o máximo entre a largura calculada e a largura do contêiner pai.
+  const chartWidth = Math.max(minChartWidth, containerWidth || 0);
+
 
   // Logic to determine the Y-axis unit
   let yAxisName = '';
@@ -215,12 +237,12 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
                 content += `<hr/>Direção do Vento: ${getDirection(d.wind_direction_sg)}<br/>`;
             }
         } else if (mainKey === 'air_temperature_sg' && params?.[0]?.dataIndex !== undefined) {
-             const d = processedData?.[params[0].dataIndex];
+            const d = processedData?.[params[0].dataIndex];
             if (d && Object.keys(d).length !== 0 && !processedLabels?.[params[0].dataIndex]?.startsWith('___EMPTY_SLOT_')) {
                 content += `<hr/>Umidade: ${formatNumber(d.humidity_sg, 0)}%<br/>`;
             }
         } else if (mainKey === 'sea_level_sg' && params?.[0]?.dataIndex !== undefined) {
-             const d = processedData?.[params[0].dataIndex];
+            const d = processedData?.[params[0].dataIndex];
             if (d && Object.keys(d).length !== 0 && !processedLabels?.[params[0].dataIndex]?.startsWith('___EMPTY_SLOT_')) {
                 content += `<hr/>Fase da Maré: <strong>${d.tide_phase === 'rising' ? 'Subindo' : 'Descendo'}</strong><br/>`;
             }
@@ -251,7 +273,7 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
     },
     yAxis: {
       type: 'value',
-      name: yAxisName, 
+      name: yAxisName,
       axisLabel: {
         fontSize: 12,
         formatter: (value) => formatNumber(value, 1),
@@ -260,7 +282,11 @@ const ChartComponent = ({ data, metrics = [], showLegend = true }) => {
     series,
   };
 
-  return <ReactECharts option={option} style={{ height: 260, width: chartWidth }} />;
+  return (
+    <div ref={chartContainerRef} style={{ width: '100%', overflowX: 'auto' }}> {/* Adicionar o ref e overflowX */}
+      <ReactECharts option={option} style={{ height: 260, width: chartWidth }} />
+    </div>
+  );
 };
 
 // Helpers
@@ -281,4 +307,4 @@ function getMetricUnit(name, metrics) {
   return found?.unit || '';
 }
 
-export default ChartComponent;
+export default ForecastChart;
