@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+// src/components/Recommendations/RecommendationCard.jsx
+
+import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-// Função auxiliar para formatar hora
-function formatTime(isoDate) {
+// --- Funções Auxiliares (estas são as que formatam os scores e direções) ---
+
+const formatTime = (isoDate) => {
     try {
         const date = new Date(isoDate);
         return format(date, 'HH:mm', { locale: ptBR });
@@ -11,241 +14,117 @@ function formatTime(isoDate) {
         console.error("Erro ao formatar a data:", error);
         return "Horário Inválido";
     }
-}
-
-// Função para converter graus para direção cardeal
-const getCardinalDirection = (degrees) => {
-    if (degrees === undefined || degrees === null) return 'N/A';
-    const val = Math.floor((degrees / 22.5) + 0.5);
-    const arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-    return arr[(val % 16)];
 };
 
-// Componente para a seta de direção
-const DirectionArrow = ({ degrees }) => {
-    if (degrees === undefined || degrees === null || isNaN(degrees)) return null;
-    // Ajuste de +90 para que a seta aponte 'para cima' quando 0 graus (Norte) e gire corretamente
-    return (
-        <svg
-            className="inline-block ml-1"
-            width="1em"
-            height="1em"
-            viewBox="0 0 24 24"
-            style={{ transform: `rotate(${degrees}deg)` }}
-        >
-            <path fill="currentColor" d="M12 2L6 12h3v10h6V12h3z" />
-        </svg>
-    );
+const formatDetailedScore = (score, isSwellImpact = false) => {
+    if (typeof score === 'number' && !isNaN(score)) {
+        // Multiplica por 100 e arredonda para o número inteiro mais próximo
+        const displayScore = (score * 100).toFixed(0);
+        return `${displayScore}/100`; // Sempre sobre 100 agora
+    }
+    return 'N/A'; // Se não for um número válido (ex: null, undefined)
 };
 
-const RecommendationCard = ({ recommendation }) => {
-    const [expanded, setExpanded] = useState(false);
+const getDirectionAbbreviation = (degrees) => {
+    if (typeof degrees !== 'number' || isNaN(degrees)) {
+        return 'N/A';
+    }
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const index = Math.round(degrees / (360 / directions.length)) % directions.length;
+    return directions[index < 0 ? index + directions.length : index];
+};
 
+// --- Componente RecommendationCard ---
+
+export default function RecommendationCard({ recommendation }) {
     if (!recommendation) {
-        return <div className="p-4 border rounded shadow-md">Nenhuma recomendação disponível.</div>;
+        return null;
     }
 
     const {
-        local_time,
         suitability_score,
         forecast_conditions,
-        tide_info, 
-        detailed_scores,     
-        spot_name,           
+        detailed_scores,
+        local_time,
+        tide_info,
+        preferences_used
     } = recommendation;
 
+    const displaySuitabilityScore = (suitability_score * 100).toFixed(0);
 
-    
-    const toggleExpanded = () => setExpanded((prev) => !prev);
+    // Funções para definir cor e rating qualitativo (podem ser as mesmas do RecommendationsGroup)
+    const getQualitativeRating = (score) => {
+        if (score === null || isNaN(score)) return "Sem dados";
+        if (score >= 95) return "Clássico 💎";
+        if (score >= 75) return "Muito Bom 🔥";
+        if (score >= 60) return "Bom 👍";
+        if (score >= 40) return "Surfável 🤙";
+        if (score >= 30) return "Ruim 👎";
+        return "Muito Ruim 🤦";
+    };
 
-    const formattedTime = formatTime(local_time);
-
-    // Dados da Previsão (com valores padrão para segurança)
-    const swellHeight = parseFloat(forecast_conditions?.swell_height_sg);
-    const swellPeriod = parseFloat(forecast_conditions?.swell_period_sg);
-    const swellDirectionDegrees = parseFloat(forecast_conditions?.swell_direction_sg);
-    const swellDirectionCardinal = getCardinalDirection(swellDirectionDegrees);
-
-    const windSpeed = parseFloat(forecast_conditions?.wind_speed_sg);
-    const windDirectionDegrees = parseFloat(forecast_conditions?.wind_direction_sg);
-    const windDirectionCardinal = getCardinalDirection(windDirectionDegrees);
-
-    const tideHeight = parseFloat(tide_info?.sea_level_sg);
-    const tideType = tide_info?.tide_phase || 'N/A';
-
-    const currentSpeed = parseFloat(forecast_conditions?.current_speed_sg);
-    const airTemp = parseFloat(forecast_conditions?.air_temperature_sg);
-    const waterTemp = parseFloat(forecast_conditions?.water_temperature_sg);
-
-    // Funções de formatação e cor para scores
-    const suitabilityPercentage = suitability_score !== undefined && suitability_score !== null && !isNaN(suitability_score)
-        ? (suitability_score ).toFixed(0)
-        : 'N/A';
-
-    const scoreColorClass = (score) => {
-        if (score === undefined || score === null || isNaN(score)) return 'text-gray-500';
-        if (score >= 75) return 'text-green-600';
-        if (score >= 50) return 'text-yellow-600';
+    const getScoreColorClass = (score) => {
+        if (score === null || isNaN(score)) return 'text-gray-500';
+        if (score >= 95) return 'text-purple-700';
+        if (score >= 75) return 'text-green-800';
+        if (score >= 60) return 'text-blue-600';
+        if (score >= 40) return 'text-yellow-600';
+        if (score >= 30) return 'text-orange-600';
         return 'text-red-600';
     };
 
-    const formatScore = (score) => {
-        return score !== undefined && score !== null && !isNaN(score) ? (score ).toFixed(0) : 'N/A';
-    };
+    const qualitativeRating = getQualitativeRating(parseFloat(displaySuitabilityScore));
+    const scoreColor = getScoreColorClass(parseFloat(displaySuitabilityScore));
 
     return (
-        <div
-            className="bg-white rounded-lg shadow-md p-4 transition-all duration-300 ease-in-out cursor-pointer hover:shadow-lg"
-            onClick={toggleExpanded}
-        >
-            {!expanded ? (
-                // Conteúdo do Cartão Normal (Compacto)
-                <>
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-bold text-xl text-blue-800">{formattedTime}</h3>
-                        <span className={`font-extrabold text-xl ${scoreColorClass(suitability_score)}`}>
-                            {suitabilityPercentage}
-                        </span>
-                    </div>
-                    {spot_name && <p className="text-gray-700 text-sm mb-2">{spot_name}</p>}
+        <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
+            <h4 className="text-xl font-bold mb-3 text-blue-800">{formatTime(local_time)}</h4>
 
-                    <div className="grid grid-cols-2 gap-y-1 text-gray-700 text-sm">
-                        <div>
-                            <span className="font-semibold">Onda:</span> {swellHeight ? `${swellHeight.toFixed(1)}m` : 'N/A'}
-                        </div>
-                        <div>
-                            <span className="font-semibold">Vento:</span> {windSpeed ? `${windSpeed.toFixed(0)}m/s` : 'N/A'} {windDirectionCardinal} {windDirectionDegrees && <DirectionArrow degrees={windDirectionDegrees} />}
-                        </div>
-                        <div>
-                            <span className="font-semibold">Direção:</span> {swellDirectionCardinal} {swellDirectionDegrees && <DirectionArrow degrees={swellDirectionDegrees} />}
-                        </div>
-                        <div>
-                            <span className="font-semibold">Maré:</span> {tideType}
-                        </div>
-                    </div>
-                </>
-            ) : (
-                // Conteúdo do Cartão Expandido
-                <>
-                    {/* Scores Detalhados no topo quando expandido */}
-                    {detailed_scores && (
-                        <div className="mb-4 pb-2 border-b border-gray-200">
-                            <h4 className="font-bold text-lg text-gray-800 mb-2">Scores Detalhados:</h4>
-                            <ul className="list-none space-y-1 text-gray-700 text-sm">
-                                <li className="flex justify-between items-center">
-                                    <span>Score Geral:</span>
-                                    <span className={`${scoreColorClass(suitability_score)} font-bold`}>
-                                        {suitabilityPercentage}
-                                    </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Altura da Onda:</span>
-                                    <span className={`${detailed_scores.height_total_score} font-normal`}>
-                                        {formatScore(detailed_scores.height_total_score) + '/25'}
-                                    </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Período da Onda:</span>
-                                    <span className={`${detailed_scores.period_total_score} font-normal`}>
-                                        {formatScore(detailed_scores.period_total_score) + '/10'}
-                                    </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Direção da Onda:</span>
-                                    <span className={`${detailed_scores.direction_total_score} font-normal`}>
-                                        {formatScore(detailed_scores.direction_total_score)+ '/3'}
-                                    </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Vento:</span>
-                                    <span className={`${detailed_scores.wind_score} font-medium`}>
-                                        {formatScore(detailed_scores.wind_score)+ '/25'}
-                                    </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Maré:</span>
-                                    <span className={`${detailed_scores.tide_score} font-medium`}>
-                                        {formatScore(detailed_scores.tide_score)+ '/18'}
-                                    </span>
-                                </li>
-                                {detailed_scores.current_speed_score !== undefined && (
-                                    <li className="flex justify-between items-center">
-                                        <span>Correnteza:</span>
-                                        <span className={`${detailed_scores.current_speed_score} font-medium`}>
-                                            {formatScore(detailed_scores.current_speed_score)+ '/3'}
-                                        </span>
-                                    </li>
-                                )}
-                                {detailed_scores.secondary_swell_impact_score !== undefined && (
-                                    <li className="flex justify-between items-center">
-                                        <span>Impacto do Swell Secundário:</span>
-                                        <span className={`${detailed_scores.secondary_swell_impact_score} font-medium`}>
-                                            {formatScore(detailed_scores.secondary_swell_impact_score)+ '/0'}
-                                        </span>
-                                    </li>
-                                )}
-                                {detailed_scores.air_temperature_score !== undefined && (
-                                    <li className="flex justify-between items-center">
-                                        <span>Temp. Ar:</span>
-                                        <span className={`${detailed_scores.air_temperature_score} font-medium`}>
-                                            {formatScore(detailed_scores.air_temperature_score)+ '/8'}
-                                        </span>
-                                    </li>
-                                )}
-                                {detailed_scores.water_temperature_score !== undefined && (
-                                    <li className="flex justify-between items-center">
-                                        <span>Temp. Água:</span>
-                                        <span className={`${detailed_scores.water_temperature_score} font-medium`}>
-                                            {formatScore(detailed_scores.water_temperature_score)+ '/8'}
-                                        </span>
-                                    </li>
-                                )}
-                            </ul>
-                        </div>
-                    )}
+            {/* Score Geral e Rating Qualitativo */}
+            <div className="flex items-baseline mb-3">
+                <span className={`text-3xl font-extrabold mr-2 ${scoreColor}`}>
+                    {displaySuitabilityScore}
+                </span>
+                <span className={`text-lg font-semibold ${scoreColor}`}>
+                    {qualitativeRating}
+                </span>
+            </div>
 
-                    {/* Detalhes da Previsão na parte de baixo quando expandido */}
-                    <div className="mt-4">
-                        <h4 className="font-bold text-lg text-gray-800 mb-2">Detalhes da Previsão:</h4>
-                        <ul className="list-none space-y-1 text-gray-700 text-sm">
+            {/* Detalhes da Previsão */}
+            <div className="mb-4 text-gray-700 text-sm flex-grow">
+                <p><strong>Ondulação:</strong> {forecast_conditions.swell_height_sg}m ({forecast_conditions.swell_period_sg}s) de {getDirectionAbbreviation(parseFloat(forecast_conditions.swell_direction_sg))} <span className="inline-block transform rotate-90 text-xl leading-none">↓</span></p>
+                {forecast_conditions.secondary_swell_height_sg && (
+                    <p className="text-xs italic ml-4">
+                        Ond. Sec.: {forecast_conditions.secondary_swell_height_sg}m ({forecast_conditions.secondary_swell_period_sg}s) de {getDirectionAbbreviation(parseFloat(forecast_conditions.secondary_swell_direction_sg))}
+                    </p>
+                )}
+                <p><strong>Vento:</strong> {forecast_conditions.wind_speed_sg} m/s de {getDirectionAbbreviation(parseFloat(forecast_conditions.wind_direction_sg))} <span className="inline-block transform -rotate-45 text-xl leading-none">➔</span></p>
+                <p><strong>Maré:</strong> {tide_info.tide_phase} ({tide_info.sea_level_sg}m)</p>
+                <p><strong>Temp. Ar:</strong> {forecast_conditions.air_temperature_sg}°C</p>
+                <p><strong>Temp. Água:</strong> {forecast_conditions.water_temperature_sg}°C</p>
+            </div>
+
+            {/* Scores Detalhados */}
+            {detailed_scores && (
+                <div className="mt-auto pt-3 border-t border-gray-200">
+                    <h5 className="font-bold text-gray-800 mb-2 text-sm">Scores Detalhados:</h5>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                        <li>Altura Onda: {formatDetailedScore(detailed_scores.wave_height_score)}</li>
+                        <li>Período Onda: {formatDetailedScore(detailed_scores.swell_period_score)}</li>
+                        <li>Direção Onda: {formatDetailedScore(detailed_scores.swell_direction_score)}</li>
+                        <li>Vento: {formatDetailedScore(detailed_scores.wind_score)}</li>
+                        <li>Maré: {formatDetailedScore(detailed_scores.tide_score)}</li>
+                        <li>Temp. Ar: {formatDetailedScore(detailed_scores.air_temperature_score)}</li>
+                        <li>Temp. Água: {formatDetailedScore(detailed_scores.water_temperature_score)}</li>
+                        {/* Secondary Swell Impact - Tratamento especial para o range -100 a 100 */}
+                        {detailed_scores.secondary_swell_impact !== undefined && (
                             <li>
-                                <span className="font-medium">Horário:</span> {formattedTime}
+                                Impacto Ond. Sec.: {formatDetailedScore(detailed_scores.secondary_swell_impact, true)}
                             </li>
-                            {spot_name && (
-                                <li>
-                                    <span className="font-medium">Spot:</span> {spot_name}
-                                </li>
-                            )}
-                            <li>
-                                <span className="font-medium">Ondulação:</span> {swellHeight ? `${swellHeight.toFixed(1)}m` : 'N/A'} ({swellPeriod ? `${swellPeriod.toFixed(0)}s` : 'N/A'}) de {swellDirectionCardinal} {swellDirectionDegrees && <DirectionArrow degrees={swellDirectionDegrees} />}
-                            </li>
-                            <li>
-                                <span className="font-medium">Vento:</span> {windSpeed ? `${windSpeed.toFixed(0)} m/s` : 'N/A'} de {windDirectionCardinal} {windDirectionDegrees && <DirectionArrow degrees={windDirectionDegrees} />}
-                            </li>
-                            <li>
-                                <span className="font-medium">Maré:</span> {tideType} {tideHeight !== undefined && tideHeight !== null && !isNaN(tideHeight) ? `(${tideHeight.toFixed(1)}m)` : ''}
-                            </li>
-                            {currentSpeed !== undefined && !isNaN(currentSpeed) && (
-                                <li>
-                                    <span className="font-medium">Correnteza:</span> {currentSpeed.toFixed(1)} m/s
-                                </li>
-                            )}
-                            {airTemp !== undefined && !isNaN(airTemp) && (
-                                <li>
-                                    <span className="font-medium">Temp. Ar:</span> {airTemp.toFixed(0)}°C
-                                </li>
-                            )}
-                            {waterTemp !== undefined && !isNaN(waterTemp) && (
-                                <li>
-                                    <span className="font-medium">Temp. Água:</span> {waterTemp.toFixed(0)}°C
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-                </>
+                        )}
+                    </ul>
+                </div>
             )}
         </div>
     );
-};
-
-export default RecommendationCard;
+}

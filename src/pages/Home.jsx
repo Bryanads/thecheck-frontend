@@ -17,6 +17,7 @@ const groupRecommendations = (recs) => {
         }
         if (!grouped[dayOffset][spotKey]) {
             grouped[dayOffset][spotKey] = {
+                spot_id: rec.spot_id,
                 spot_name: rec.spot_name,
                 recommendations: []
             };
@@ -27,20 +28,16 @@ const groupRecommendations = (recs) => {
     return grouped;
 };
 
-// Função auxiliar para formatar a data
 const getDisplayDate = (dayOffset) => {
     const today = new Date();
     today.setDate(today.getDate() + dayOffset);
     const options = { weekday: 'long', month: 'numeric', day: 'numeric' };
 
     if (dayOffset === 0) {
-        // Formato para "Hoje - DD/MM"
         return "Hoje - " + today.toLocaleDateString('pt-BR', {month: 'numeric', day: 'numeric'});
     } else if (dayOffset === 1) {
-        // Formato para "Amanhã - DD/MM"
         return "Amanhã - " + today.toLocaleDateString('pt-BR', {month: 'numeric', day: 'numeric'});
     } else {
-        // Formato para "Dia da Semana - DD/MM" para outros dias
         return today.toLocaleDateString('pt-BR', options);
     }
 };
@@ -68,22 +65,24 @@ function Home() {
                 const preset = defaultPresetResponse.data;
                 setDefaultPresetName(preset.preset_name);
 
-                const formattedStartTime = preset.start_time.substring(0, 5);
-                const formattedEndTime = preset.end_time.substring(0, 5);
+                const formattedStartTime = preset.start_time ? preset.start_time.substring(0, 5) : '00:00';
+                const formattedEndTime = preset.end_time ? preset.end_time.substring(0, 5) : '23:59';
 
                 const recommendationData = {
                     user_id: userId,
-                    spot_ids: preset.spot_ids,
+                    spot_ids: Array.isArray(preset.spot_ids) ? preset.spot_ids : (preset.spot_ids ? preset.spot_ids.split(',').map(id => parseInt(id.trim())) : []),
                     day_offset: Array.isArray(preset.day_offset_default) ? preset.day_offset_default : [preset.day_offset_default],
                     start_time: formattedStartTime,
                     end_time: formattedEndTime,
                 };
 
-                const fetchedRecommendations = await API.post(`/recommendations`, recommendationData);
+                const fetchedRecommendationsResponse = await API.post(`/recommendations`, recommendationData);
 
                 let allFlatRecommendations = [];
-                if (fetchedRecommendations.data && Array.isArray(fetchedRecommendations.data.recommendations_by_spot)) {
-                    fetchedRecommendations.data.recommendations_by_spot.forEach(spotGroup => {
+                if (fetchedRecommendationsResponse.data && Array.isArray(fetchedRecommendationsResponse.data)) {
+                     allFlatRecommendations = fetchedRecommendationsResponse.data;
+                } else if (fetchedRecommendationsResponse.data && Array.isArray(fetchedRecommendationsResponse.data.recommendations_by_spot)) {
+                    fetchedRecommendationsResponse.data.recommendations_by_spot.forEach(spotGroup => {
                         if (Array.isArray(spotGroup)) {
                             spotGroup.forEach(spotData => {
                                 if (spotData && Array.isArray(spotData.recommendations)) {
@@ -101,9 +100,24 @@ function Home() {
                                     });
                                 }
                             });
+                        } else if (spotGroup && spotGroup.recommendations && Array.isArray(spotGroup.recommendations)) {
+                             const spotName = spotGroup.spot_name;
+                             const spotId = spotGroup.spot_id;
+                             const dayOffset = spotGroup.day_offset;
+
+                             spotGroup.recommendations.forEach(rec => {
+                                 allFlatRecommendations.push({
+                                     ...rec,
+                                     spot_id: spotId,
+                                     spot_name: spotName,
+                                     day_offset: dayOffset
+                                 });
+                             });
                         }
                     });
                 }
+                
+                allFlatRecommendations = allFlatRecommendations.filter(rec => rec && rec.spot_id && rec.spot_name);
 
                 sessionStorage.setItem(`recommendations_for_${userId}`, JSON.stringify(allFlatRecommendations));
                 sessionStorage.setItem(`default_preset_name_for_${userId}`, preset.preset_name);
@@ -165,7 +179,6 @@ function Home() {
         );
     }
 
-    // Obter os dayOffsets e ordená-los
     const sortedDayOffsets = Object.keys(groupedRecommendations).sort((a, b) => parseInt(a) - parseInt(b));
 
     return (
@@ -202,13 +215,11 @@ function Home() {
                         </div>
                     )}
 
-                    {/* Loop pelos dias */}
                     {sortedDayOffsets.map(dayOffset => (
                         <div key={dayOffset} className="mb-8 p-4 bg-gray-50 rounded-lg shadow-sm">
                             <h2 className="text-2xl font-semibold text-blue-800 mb-4 border-b pb-2">
                                 {getDisplayDate(parseInt(dayOffset))}
                             </h2>
-                            {/* Loop pelos spots dentro de cada dia */}
                             {Object.keys(groupedRecommendations[dayOffset])
                                 .sort((a, b) => groupedRecommendations[dayOffset][a].spot_name.localeCompare(groupedRecommendations[dayOffset][b].spot_name))
                                 .map(spotKey => {
@@ -218,7 +229,6 @@ function Home() {
                                             key={spotKey}
                                             spotName={spotData.spot_name}
                                             recommendations={spotData.recommendations}
-                                            error={spotData.error} // Passa o erro se existir
                                         />
                                     );
                                 })}
